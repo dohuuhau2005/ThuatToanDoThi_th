@@ -12,3 +12,4 @@ U:\THToandothi\23DH114301\obj\Debug\net8.0\refint\23DH114301.dll
 U:\THToandothi\23DH114301\obj\Debug\net8.0\23DH114301.pdb
 U:\THToandothi\23DH114301\obj\Debug\net8.0\23DH114301.genruntimeconfig.cache
 U:\THToandothi\23DH114301\obj\Debug\net8.0\ref\23DH114301.dll
+U:\THToandothi\23DH114301\obj\Debug\net8.0\23DH114301.sourcelink.json

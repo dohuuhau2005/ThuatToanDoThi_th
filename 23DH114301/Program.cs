@@ -1,4 +1,8 @@
-﻿using System.IO.Enumeration;
+﻿using System.ComponentModel.Design;
+using System.IO.Enumeration;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml.Schema;
 
 namespace _23DH114301
 {
@@ -7,8 +11,8 @@ namespace _23DH114301
 
         static void Main(string[] args)
         {
-            Buoi5 buoi3 = new Buoi5();
-            buoi3.Bai3();
+            Buoi2 buoi3 = new Buoi2();
+            buoi3.Bai2();
 
 
         }
@@ -21,6 +25,7 @@ public class Buoi1
     static int[] degree, DegreeOut, DegreeIn;
     static int[,] V_arrayMatrix;
     static int n;
+    static List<List<int>> v_ListMatrix3;
     private static int m;
     private static int[,] V_arrayMatrix4;
     private static int[] v_degress;
@@ -179,6 +184,62 @@ public class Buoi1
     {
         string input = "U:\\THToandothi\\AdjecencyList.INP";
         string output = "U:\\THToandothi\\AdjecencyList.OUT";
+        ReadMatrix3(input);
+        CountDegress3();
+        Writefile34(output);
+    }
+    static void ReadMatrix3(string file)
+    {
+        string[] line = File.ReadAllLines(file);
+        if (!File.Exists(file))
+        {
+            Console.WriteLine("error read matrix bai 3");
+
+        }
+        v_ListMatrix3 = new List<List<int>>();
+        //so đỉnh của đồ thị
+        n = int.Parse(line[0]);
+        for (int i = 0; i < n; i++)
+        {
+            if (i + 1 < line.Length)
+            {
+                string[] v_row_canhke = line[i + 1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                List<int> v_list = new List<int>();
+                foreach (string canhke in v_row_canhke)
+                {
+                    v_list.Add(Convert.ToInt32(canhke));
+
+                }
+                v_ListMatrix3.Add(v_list);
+            }
+            else
+            {
+                v_ListMatrix3.Add(new List<int>());//đỉnh cô lập
+            }
+        }
+
+    }
+    static void CountDegress3()
+    {
+        //tính bậc từng đỉnh
+        v_degress = new int[n];
+        for (int i = 0; i < n; i++)
+        {
+            v_degress[i] = v_ListMatrix3[i].Count;//bậc bằng số lượng đỉnh kề
+
+        }
+    }
+    static void Writefile34(string output)
+    {
+        using (StreamWriter writer = new StreamWriter(output))
+        {
+            //đỉnh
+            writer.WriteLine(n);
+            //chỉ bậc từng đỉnh
+            writer.WriteLine(string.Join(" ", v_degress));
+
+        }
+        Console.WriteLine("successfull");
     }
     public void Bai4()
     {
@@ -234,7 +295,7 @@ public class Buoi1
         }
     }
 }
-public static class Buoi2
+public class Buoi2
 {
     static int[,] V_arrayMatrix1;
     static List<int> Vout_adjacencyList1;
@@ -252,7 +313,14 @@ public static class Buoi2
     static int v_Maxedge;
     static int n, m;
 
-    public static void Run() { }
+    public void Bai1()
+    {
+        string input = "U:\\THToandothi\\Ke2Canh.INP";
+        string output = "U:\\THToandothi\\Ke2Canh.OUT";
+        ReadMatrix(input);
+        //DegreesofVertices();
+        //Writefile(output);
+    }
     public static void ReadMatrix(string file)
     {
         string[] lines = File.ReadAllLines(file);//đọc số cạnh
@@ -276,6 +344,16 @@ public static class Buoi2
 
         }
     }
+    public void Bai2()
+    {
+        string input = "U:\\THToandothi\\Ke2Canh.INP";
+        string output = "U:\\THToandothi\\Ke2Canh.OUT";
+        ReadMatrix2(input);
+        ConvertToEdgeList2();
+        WriteFile2(output);
+
+
+    }
     static void ReadMatrix2(string file)
     {
         //đọc dữ liệu từ file 
@@ -296,7 +374,7 @@ public static class Buoi2
                 List<int> v_list = new List<int>();
                 foreach (string canhke in v_row_canhke)
                 {
-                    v_list.Add(Convert.ToInt32(canhke));
+                    v_list.Add(int.Parse(canhke));
 
                 }
                 v_listMatrix2.Add(v_list);
@@ -324,6 +402,36 @@ public static class Buoi2
         v_edges2 = new List<CEdge>();
         //tạo chuỗi không trùng phần tử
         HashSet<string> v_seenEdges = new HashSet<string>();
+        for (int u = 0; u < n; u++)
+        {
+            foreach (int v in v_listMatrix2[u])
+            {
+                //u+1 : đỉnh 1..5
+                string edgeKey = u + 1 < v ? $"{u + 1}-{v}" : $"{v}-{u + 1}";//đảm bảo không bị trùng lặp
+                if (!v_seenEdges.Contains(edgeKey))
+                {
+                    v_edges2.Add(new CEdge(u + 1, v));
+                    //thêm vào hash
+                    v_seenEdges.Add(edgeKey);
+
+                }
+
+            }
+        }
+    }
+    static void WriteFile2(string Oufile)
+    {
+        using (StreamWriter writer = new StreamWriter(Oufile))
+        {
+            writer.WriteLine($"{n} {v_edges2.Count}");
+            foreach (var edge in v_edges2)
+            {
+                writer.WriteLine(edge.u + " " + edge.v);
+            }
+            Console.WriteLine("successfully");
+        }
+
+
     }
     public static void Findnote3()
     {
@@ -1346,4 +1454,277 @@ public class Buoi5
         }
     }
 }
+public class Buoi6
+{
+    private static List<(int, int)>[] v_MatrixGraph;
+    private static int n;
+    private static int m;
+    private static int x;
+    private static bool[] v_visited;
+    static List<(int, int, int)> v_treeEdges;
+    private static int[] v_parent;
+    private static List<(int, int, int)> v_MintreeEdges;
+    private static int v_totalEdges;
+    private static int start;
+
+    public void Bai1()
+    {
+        string inFile = "U:\\THToandothi\\CayKhung.INP";
+        string outFile = "U:\\THToandothi\\CayKhung.OUT";
+        ReadMatrix(inFile);
+        //DFS_Stack(1);
+        v_visited = new bool[n + 1];
+        v_treeEdges = new List<(int, int, int)>();//khai báo trc đệ qui
+        DFS(1);
+        WriteFile(outFile);
+    }
+
+    static void ReadMatrix(string input)
+    {
+        // read inputed information
+        string[] lines = File.ReadAllLines(input);
+        //line 0  là đỉnh và startnode(s)
+        string[] Firstline = lines[0].Split();
+        n = int.Parse(Firstline[0]);// số đỉnh
+        m = int.Parse(Firstline[1]);// startnode
+
+
+        //khởi tạo danh sách kề
+        v_MatrixGraph = new List<(int, int)>[n + 1];
+        for (int i = 1; i <= n; i++)
+        {
+            v_MatrixGraph[i] = new List<(int, int)>();
+        }
+        for (int i = 1; i <= n; i++)
+        {
+            string[] edge = lines[i].Split();
+            int u = int.Parse(edge[0]);
+            int v = int.Parse(edge[1]);
+            int w = int.Parse(edge[2]);
+
+            v_MatrixGraph[u].Add((v, w));
+            v_MatrixGraph[v].Add((u, w));//đồ thị vô hướng
+        }
+
+    }
+    static void DFS_Stack(int n)
+    {
+        //stack sẽ hiệu quả hơn trong project lớn nhưng dài
+        Stack<int> v_stack = new Stack<int>();
+        v_stack.Push(start);
+        v_visited[start] = true;
+
+        while (v_stack.Count > 0)
+        {
+            int u = v_stack.Pop();
+            foreach (var (v, w) in v_MatrixGraph[u])//duyệt đỉnh kề
+            {
+                if (!v_visited[u])//kiểm tra đỉnh đã được duyệt trc đó chx
+                {
+                    v_visited[v] = true;
+                    v_stack.Push(v);
+                    v_treeEdges.Add((u, v, w));//cho vào xây khung
+                }
+            }
+
+        }
+
+    }
+    static void DFS(int u)
+    {
+        //cơ sở
+        v_visited[u] = true;
+        foreach (var (v, w) in v_MatrixGraph[u])
+        {
+            if (!v_visited[v])
+            {
+                v_treeEdges.Add((u, v, w));
+                DFS(v);
+            }
+        }
+    }
+
+
+    static void WriteFile(string output)
+    {
+        using (StreamWriter sw = new StreamWriter(output))
+        {
+            sw.WriteLine(v_treeEdges.Count);
+            foreach (var (u, v, w) in v_treeEdges)
+            {
+
+                sw.WriteLine($"{u}  {v} {w}");
+            }
+
+        }
+        Console.WriteLine("successfully");
+    }
+
+    public void Bai2()
+    {
+        string inFile = "U:\\THToandothi\\Kruskal.INP";
+        string outFile = "U:\\THToandothi\\Kruskal.OUT";
+        ReadMatrix2(inFile);
+        Kruskal();
+        WriteFile2(outFile);
+    }
+    //lưu dạng cạnh
+    static void ReadMatrix2(string input)
+    {
+        // read inputed information
+        string[] lines = File.ReadAllLines(input);
+        //line 0  là đỉnh và startnode(s)
+        string[] Firstline = lines[0].Split();
+        n = int.Parse(Firstline[0]);// số đỉnh
+        x = int.Parse(Firstline[1]);// startnode
+        v_treeEdges = new List<(int, int, int)>();
+
+
+        //khởi tạo danh sách kề
+        v_MatrixGraph = new List<(int, int)>[n + 1];
+        for (int i = 1; i <= n; i++)
+        {
+            v_MatrixGraph[i] = new List<(int, int)>();
+        }
+        for (int i = 1; i <= n; i++)
+        {
+            string[] edge = lines[i].Split();
+            int u = int.Parse(edge[0]);
+            int v = int.Parse(edge[1]);
+            int w = int.Parse(edge[2]);
+
+            v_treeEdges.Add((w, u, v));//thêm cạnh vào danh sách
+        }
+    }
+    static void Union(int u, int v)
+    {
+        int rootU = Find(u);
+        int rootV = Find(v);
+        if (rootU != rootV)
+            v_parent[rootV] = rootU;//hợp nhất 2 tập hợp, chuyển gốc của v cùng với gốc của u
+    }
+    static int Find(int u)
+    {
+        Stack<int> stack = new Stack<int>();
+        while (v_parent[u] != u)
+        {
+            stack.Push(u);
+            u = v_parent[u];
+
+        }
+        //áp dụng đường đi
+        while (stack.Count > 0)
+        {
+            int node = stack.Pop();
+            v_parent[node] = u;
+
+        }
+        return u;
+    }
+    static void Kruskal()
+    {
+        v_treeEdges.Sort();//sắp xếp cạnh theo trọng số tăng dần
+        v_parent = new int[n + 1];
+        v_MintreeEdges = new List<(int, int, int)>();
+        for (int i = 1; i <= n; i++)
+        {
+            v_parent[i] = i;//khởi tạo tập hợp riêng biệt cho mỗi đỉnh, là gốc của chính mình
+        }
+        foreach (var (w, u, v) in v_treeEdges)
+        {
+            if (Find(u) != Find(v))//nếu u và v không cùng tập hợp không cùng gốc
+
+            {
+                Union(u, v);//ghép 2 tập hợp cùng gốc
+                v_MintreeEdges.Add((u, v, w));//Thêm vào tập khung cây nhỏ nhất
+                v_totalEdges += w;
+                if (v_MintreeEdges.Count == n - 1)
+                    break;
+
+            }
+
+        }
+
+    }
+    static void WriteFile2(string outfile)
+    {
+        using (StreamWriter sw = new StreamWriter(outfile))
+        {
+            sw.WriteLine($"{v_MintreeEdges.Count} {v_totalEdges}");
+            foreach (var (u, v, w) in v_MintreeEdges)
+                sw.WriteLine($"{u} {v} {w}");
+
+        }
+    }
+    public void Bai3()
+    {
+        string inFile = "U:\\THToandothi\\Prim.INP";
+        string outFile = "U:\\THToandothi\\Prim.OUT";
+        ReadMatrix3(inFile);
+        Prim();
+        WriteFile3(outFile);
+    }
+
+    private void Prim()
+    {
+        v_MintreeEdges = new List<(int, int, int)>();
+        v_visited = new bool[n + 1];//đánh dấu đỉnh thuộc cây khung nhỏ nhất
+        SortedSet<(int, int, int)> v_pqueue = new SortedSet<(int, int, int)>();//(trọng số, đỉnh u,đỉnh v) , hàng đợi ưu tiên
+
+        v_visited[1] = true;// bắt đầu từ đỉnh 1
+        foreach (var (v, w) in v_MatrixGraph[1])
+        {
+            v_pqueue.Add((w, 1, v));//(trọng số, đỉnh 1, đỉnh kề)
+
+        }
+        while (v_pqueue.Count > 0 && v_MintreeEdges.Count < n - 1)//lập khi hàng đợ còn và số cạnh đủ n-1
+
+        {
+            var (w, u, v) = v_pqueue.Min;//lấy cạnh có trọng số nhỏ nhất
+            v_pqueue.Remove(v_pqueue.Min);//xóa khỏi hàng đợi
+
+            if (v_visited[v]) continue;//bỏ qua nếu đỉnh đã xem xét
+            v_MintreeEdges.Add((u, v, w));//thêm cạnh vào tập cây khung nhỏ nhất
+            v_totalEdges += w;//tính tổng trọng số đã đi qua
+            v_visited[v] = true;//đánh dấu đã xét
+
+            foreach (var (du, dw) in v_MatrixGraph[v])//duyệt các đỉnh kề v
+                if (!v_visited[du])
+                    v_pqueue.Add((dw, v, du));//nếu chưa xét thì thêm vào hàng đợi
+
+
+
+
+        }
+
+
+
+    }
+
+    static void ReadMatrix3(string inFile)
+    {
+        ReadMatrix(inFile);
+    }
+    static void WriteFile3(string outfile)
+    {
+        using (StreamWriter sw = new StreamWriter(outfile))
+        {
+            sw.WriteLine($"{v_MintreeEdges.Count} {v_totalEdges}");
+            foreach (var (u, v, w) in v_MintreeEdges)
+            {
+                sw.WriteLine($"{u} {v} {w}");
+            }
+
+        }
+
+
+
+    }
+    static public void Bai4()
+    {
+
+    }
+
+}
+
 
