@@ -11,8 +11,8 @@ namespace _23DH114301
 
         static void Main(string[] args)
         {
-            Buoi2 buoi3 = new Buoi2();
-            buoi3.Bai2();
+            Buoi6 buoi3 = new Buoi6();
+            buoi3.Bai4();
 
 
         }
@@ -1466,6 +1466,9 @@ public class Buoi6
     private static List<(int, int, int)> v_MintreeEdges;
     private static int v_totalEdges;
     private static int start;
+    private static int u;
+    private static int v;
+    private static int w;
 
     public void Bai1()
     {
@@ -1720,8 +1723,209 @@ public class Buoi6
 
 
     }
-    static public void Bai4()
+    public void Bai4()//ko thỏa dk thì xóa
     {
+        string inFile = "U:\\THToandothi\\CayKhungX.INP";
+        string outFile = "U:\\THToandothi\\CayKhungX.OUT";
+        ReadMatrix4(inFile);
+        int v_rest = Kruskal4();
+        WriteFile4(outFile, v_rest);
+    }
+
+
+
+    static List<(int, int, int)> v_edges; // Lưu tất cả các cạnh
+    private static int q;
+
+    static void ReadMatrix4(string input)
+    {
+        string[] lines = File.ReadAllLines(input);
+        string[] Firstline = lines[0].Split();
+        n = int.Parse(Firstline[0]); // số đỉnh
+        m = int.Parse(Firstline[1]); // số cạnh
+        x = int.Parse(Firstline[2]); // điều kiện trọng số tối thiểu
+
+        v_edges = new List<(int, int, int)>(); // Khởi tạo danh sách cạnh
+
+        for (int i = 1; i <= m; i++) // Chạy từ dòng 1 đến m (không phải n)
+        {
+            string[] edge = lines[i].Split();
+            int u = int.Parse(edge[0]);
+            int v = int.Parse(edge[1]);
+            int w = int.Parse(edge[2]);
+
+            v_edges.Add((w, u, v)); // Lưu cạnh vào danh sách
+        }
+    }
+
+    //Hàm xử lý thuật toán krusal có điều kiện ( với số cạnh có trọng số >=x)
+    static int Kruskal4()
+    {
+        int v_total = 0, v_count = 0;
+
+        // Lọc cạnh có trọng số >= x
+        List<(int, int, int)> v_filteredEdges = new List<(int, int, int)>();
+        foreach (var edge in v_edges)
+        {
+            if (edge.Item1 >= x) // Lưu ý: ">= x" thay vì ">"
+            {
+                v_filteredEdges.Add(edge);
+            }
+        }
+
+        // Sắp xếp các cạnh theo trọng số tăng dần
+        v_filteredEdges.Sort();
+
+        // Khởi tạo DSU (Disjoint Set Union)
+        v_parent = new int[n + 1];
+        v_MintreeEdges = new List<(int, int, int)>();
+
+        for (int i = 1; i <= n; i++) v_parent[i] = i;
+
+        foreach (var (w, u, v) in v_filteredEdges)
+        {
+            if (Find(u) != Find(v)) // Nếu u và v chưa cùng tập
+            {
+                Union(u, v);
+                v_MintreeEdges.Add((u, v, w));
+                v_total += w;
+                v_count++;
+
+                if (v_count == n - 1) // Nếu đủ n-1 cạnh thì dừng
+                {
+                    return v_total;
+                }
+            }
+        }
+
+        return -1; // Nếu không tạo được MST hợp lệ
+    }
+
+    private static void WriteFile4(string outFile, int result)
+    {
+        File.WriteAllText(outFile, result.ToString());
+        Console.WriteLine("WriteFile2");
+    }
+
+    public static void Bai5()
+    {
+
+        string inFile = "U:\\THToandothi\\CayKhungX.INP";
+        string outFile = "U:\\THToandothi\\CayKhungX.OUT";
+        ReadMatrix4(inFile);
+        int v_rest = Kruskal4();
+        WriteFile4(outFile, v_rest);
+    }
+    static void ReadMatrix5(string inFile)
+    {
+        string[] lines = File.ReadAllLines(inFile);
+        n = int.Parse(lines[0]);//đỉnh
+
+        v_treeEdges = new List<(int, int, int)>();
+
+        //đọc ma trận kề
+        for (int i = 1; i <= n; i++)
+        {
+            string[] row = lines[i].Split(new char[] { ' ' });
+            for (int j = i + 1; j <= n; j++)
+            {//chỉ đọc nửa trên ma trận kề đồ thị vô hướng
+                int w = int.Parse(row[j - 1]);//đọc trọng số từ ma trận
+                v_treeEdges.Add((w, i - 1, j - 1));//thêm cạnh vào danh sách
+
+
+            }
+
+        }
+        q = int.Parse(lines[n + 1]);//đọc số cạnh đã xây n+1
+        //Thêm các cạnh đã xây vào danh sách với trọng số 0 , 0 là để ưu tiên các cạnh trong Kruskal
+        for (int i = 1; i < n; i++)
+        {
+
+
+        }
+
+    }
+
+
+
+}
+public class Buoi7
+{
+    private static int n;
+
+    public static int[,] V_arrayMatrix { get; private set; }
+
+    public static void Bai1()
+    {
+        string input = "U:\\THToandothi\\CayKhung.INP";
+        string output = "U:\\THToandothi\\CayKhung.OUT";
+        ReadMatrix(input);
+        Writefile1(output);
+    }
+
+    private static void Writefile1(string output)
+    {
+        throw new NotImplementedException();
+    }
+
+    static void ReadMatrix(string file)
+    {
+        if (!File.Exists(file))//debug
+        {
+            Console.WriteLine("file is not exit");
+            Console.ReadKey();
+        }
+
+
+
+        else
+        {
+            string[] lines = File.ReadAllLines(file);       // số đỉnh của đồ thị
+            n = Convert.ToInt32(lines[0]);
+            V_arrayMatrix = new int[n, n];
+            for (int i = 0; i < n; i++)
+            {
+                //đọc dòng tiếp theo
+                string[] row = lines[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int j = 1; j <= n; j++)
+                {
+                    //đọc theo line (row)
+                    V_arrayMatrix[i, j] = Convert.ToInt32(row[j - 1]);
+
+                }
+
+
+            }
+        }
+
+
+    }
+    static int Euler1()
+    {
+        if (!Connected()) return 0;
+
+        int v_row = CountOddDegree();
+
+        if (v_row == 0) return 1;//chu trình euler không có đỉnh 
+        if (v_row == 2) return 2;//đường đi Euler, có 2 đỉnh lẻ
+
+        return 0;
+
+    }
+
+    private static int CountOddDegree()
+    {
+        throw new NotImplementedException();
+    }
+
+    private static bool Connected()
+    {
+        throw new NotImplementedException();
+    }
+
+    static void writefile1(string output, int result)
+    {
+
 
     }
 
