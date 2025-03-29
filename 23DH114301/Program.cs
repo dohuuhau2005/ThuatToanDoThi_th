@@ -913,7 +913,7 @@ public class Buoi3
 public class Buoi4
 {
     static int n, m, s, x, y;
-    static List<int>[] v_adjList;
+    static List<int>[] v_adjList;//khởi tạo 1 mảng các danh sách list
     static List<int> v_result1;
     static int[] v_parent2;
     static bool v_result3;
@@ -1035,7 +1035,7 @@ public class Buoi4
             {
                 for (int j = v_adjList[node].Count - 1; j >= 0; j--)
                 {
-                    int neighbor = v_adjList[node][j];
+                    int neighbor = v_adjList[node][j]; //lấy phần tử thứ j tại chỉ much node
                     if (!v_visited[neighbor])
                     {
                         v_stack.Push(neighbor);
@@ -1852,20 +1852,26 @@ public class Buoi6
 public class Buoi7
 {
     private static int n;
+    private static int x;
+    private static List<int> v_eulerCycle;
+    private static bool[] v_visited;
 
+    public static int[,] V_arrayMatrix_tmp { get; private set; }
     public static int[,] V_arrayMatrix { get; private set; }
 
     public static void Bai1()
     {
-        string input = "U:\\THToandothi\\CayKhung.INP";
-        string output = "U:\\THToandothi\\CayKhung.OUT";
+        string input = "U:\\THToandothi\\EulerVoHuong.INP";
+        string output = "U:\\THToandothi\\EulerVoHuong.OUT";
         ReadMatrix(input);
-        Writefile1(output);
+        int v_rest = Euler1();
+        Writefile1(output, v_rest);
     }
 
-    private static void Writefile1(string output)
+    private static void Writefile1(string output, int result)
     {
-        throw new NotImplementedException();
+        File.WriteAllText(output, result.ToString());
+        Console.WriteLine("writefile 1");
     }
 
     static void ReadMatrix(string file)
@@ -1883,7 +1889,7 @@ public class Buoi7
             string[] lines = File.ReadAllLines(file);       // số đỉnh của đồ thị
             n = Convert.ToInt32(lines[0]);
             V_arrayMatrix = new int[n, n];
-            for (int i = 0; i < n; i++)
+            for (int i = 1; i <= n; i++)
             {
                 //đọc dòng tiếp theo
                 string[] row = lines[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -1915,20 +1921,153 @@ public class Buoi7
 
     private static int CountOddDegree()
     {
-        throw new NotImplementedException();
+        int v_oddCount = 0;
+        for (int i = 1; i <= n; i++)//duyệt hàng
+        {
+            int v_degress = 0;
+            for (int j = 1; j <= n; j++)//duyệt cột
+            {
+                v_degress += V_arrayMatrix[i, j];//Đếm số cạnh
+
+            }
+            if (v_degress % 2 == 1) v_oddCount++; //nếu là đậu thì tăng count
+        }
+        return v_oddCount;
+    }
+    //kiếm liên thông bằng DFS
+    static void DFS1(int u)
+    {
+        v_visited[u] = true;//đánh dấu đỉnh u được thăm
+        for (int v = 1; v <= n; v++)//lần lượt duyệt từng đỉnh
+        {
+            if (V_arrayMatrix[u, v] > 0 && !v_visited[v])//đánh dấu cạnh u và v
+            {
+                DFS1(v);//gọi đệ quy thăm v
+            }
+
+        }
     }
 
     private static bool Connected()
     {
-        throw new NotImplementedException();
+        v_visited = new bool[n + 1];
+        int startNode = -1;
+        for (int i = 1; i <= n; i++)
+        {
+            for (int j = 1; j <= n; j++)
+            {
+                if (V_arrayMatrix[i, j] > 0)
+                {
+                    startNode = i;
+                    break;
+                }
+            }
+            if (startNode != -1) break;
+        }
+        if (startNode == -1) return false;//ko liên thông
+
+        DFS1(startNode);//kiểm tra liên thông
+        //kiểm tra tất cả các đỉnh bậc >0 có được duyệt hay không
+        for (int i = 1; i <= n; i++)
+        {
+            if (!v_visited[i])
+            {
+                for (int j = 1; j <= n; j++)
+                {
+                    if (V_arrayMatrix[i, j] > 0) return false;//nếu ko có cạnh nào , đề không liên thông
+                }
+            }
+        }
+        return true;
     }
 
-    static void writefile1(string output, int result)
+
+    public static void Bai3()
     {
-
-
+        string input = "U:\\THToandothi\\ChuTrinhEuler.INP";
+        string output = "U:\\THToandothi\\ChuTrinhEuler.OUT ";
+        ReadMatrix3(input);
+        bool v_f = FindHierholzer3();
+        Writefile3(output, v_f);
     }
 
+    private static void Writefile3(string output, bool v_f)
+    {
+        using (StreamWriter sw = new StreamWriter(output))
+        {
+            if (v_f)
+            {
+                for (int j = 0; j < v_eulerCycle.Count; j++)
+                {
+                    sw.Write(v_eulerCycle[j] + "->");
+                    Console.Write(v_eulerCycle[j] + "->");
+                }
+            }
+        }
+    }
+
+    private static bool FindHierholzer3()
+    {
+        if (Euler1() == 1)
+        {
+            Hierholzer3();
+            return true;
+        }
+        return false;
+    }
+    //hàm xử lý chu trình euler
+    private static void Hierholzer3()//qua cạnh đó xong xóa cạnh
+    {
+        Stack<int> stack = new Stack<int>();
+
+        v_eulerCycle = new List<int>();
+        V_arrayMatrix_tmp = (int[,])V_arrayMatrix.Clone();//sao chép ma trận
+        stack.Push(x);
+
+        while (stack.Count > 0)
+        {
+            int u = stack.Peek();
+            bool hasEdge = false;
+            for (int v = 1; v <= n; v++)
+            {
+                if (V_arrayMatrix_tmp[u, v] > 0)
+                {
+                    stack.Push(v);
+                    V_arrayMatrix_tmp[u, v]--;//xóa cạnh từ uv
+                    V_arrayMatrix_tmp[v, u]--;//xóa cạnh từ vu
+                    hasEdge = true;
+                    break;//thoát khỏi for
+                }
+
+            }
+            if (!hasEdge)
+            {
+                v_eulerCycle.Add(stack.Pop());
+
+            }
+        }
+    }
+
+    private static void ReadMatrix3(string input)
+    {
+        string[] lines = File.ReadAllLines(input);
+
+        string[] firstline = lines[0].Split();
+        n = int.Parse(firstline[0]);//đọc số đỉnh
+
+        x = int.Parse(firstline[1]);//đọc số đỉnh bắt đầu
+        V_arrayMatrix = new int[n + 1, n + 1];
+        for (int i = 1; i <= n; i++)
+        {
+            string[] row = lines[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int j = 1; j <= n; j++)
+            {
+                V_arrayMatrix[i, j] = int.Parse(row[j - 1]);
+
+            }
+        }
+
+    }
 }
 
 
