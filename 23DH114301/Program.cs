@@ -11,7 +11,7 @@ namespace _23DH114301
 
         static void Main(string[] args)
         {
-            Buoi6 buoi3 = new Buoi6();
+            Buoi7 buoi3 = new Buoi7();
             buoi3.Bai4();
 
 
@@ -313,35 +313,46 @@ public class Buoi2
     static int v_Maxedge;
     static int n, m;
 
+    private Dictionary<int, List<int>> adjacencyList;
+
+
     public void Bai1()
     {
-        string input = "U:\\THToandothi\\Ke2Canh.INP";
-        string output = "U:\\THToandothi\\Ke2Canh.OUT";
+        string input = "U:\\THToandothi\\Canh2Ke.INP";
+        string output = "U:\\THToandothi\\Canh2Ke.OUT";
         ReadMatrix(input);
-        //DegreesofVertices();
-        //Writefile(output);
+        Writefile(output);
     }
-    public static void ReadMatrix(string file)
+
+    private void ReadMatrix(string inputFile)
     {
-        string[] lines = File.ReadAllLines(file);//đọc số cạnh
-        //dòng đầu tiên chứa số cạnh và số đỉnh
-        if (!File.Exists(file))
+        var lines = File.ReadAllLines(inputFile);
+        var firstLine = lines[0].Split();
+        n = int.Parse(firstLine[0]);
+        m = int.Parse(firstLine[1]);
+
+        adjacencyList = new Dictionary<int, List<int>>();
+        for (int i = 1; i <= n; i++)
+            adjacencyList[i] = new List<int>();
+
+        for (int i = 1; i <= m; i++)
         {
-            Console.WriteLine("file is not exit");
+            var edge = lines[i].Split().Select(int.Parse).ToArray();
+            adjacencyList[edge[0]].Add(edge[1]);
+            adjacencyList[edge[1]].Add(edge[0]);
         }
-        // số đỉnh của đồ thị
-        n = Convert.ToInt32(lines[0]);
-        V_arrayMatrix1 = new int[n, n];
-        for (int i = 0; i < n; i++)
+    }
+
+    private void Writefile(string outputFile)
+    {
+        using (var writer = new StreamWriter(outputFile))
         {
-            string[] row = lines[i + 1].Split(' ');
-            for (int j = 0; j < n; j++)
+            writer.WriteLine(n);
+            for (int i = 1; i <= n; i++)
             {
-                V_arrayMatrix1[i, j] = Convert.ToInt32(row[j]);
-
+                adjacencyList[i].Sort();
+                writer.WriteLine(string.Join(" ", adjacencyList[i]));
             }
-
-
         }
     }
     public void Bai2()
@@ -349,113 +360,178 @@ public class Buoi2
         string input = "U:\\THToandothi\\Ke2Canh.INP";
         string output = "U:\\THToandothi\\Ke2Canh.OUT";
         ReadMatrix2(input);
-        ConvertToEdgeList2();
-        WriteFile2(output);
-
-
+        ChuyenSangDanhSachCanh();
+        Writefile2(output);
     }
-    static void ReadMatrix2(string file)
+
+    private static void ReadMatrix2(string file)
     {
-        //đọc dữ liệu từ file 
-        string[] line = File.ReadAllLines(file);
         if (!File.Exists(file))
         {
-            Console.WriteLine("error read matrix bai 2");
-
+            Console.WriteLine("Lỗi: Không thể đọc file danh sách kề.");
+            return;
         }
-        v_listMatrix2 = new List<List<int>>();
-        //so đỉnh của đồ thị
-        n = int.Parse(line[0]);
-        for (int i = 0; i < n; i++)
-        {
-            if (i + 1 < line.Length)
-            {
-                string[] v_row_canhke = line[i + 1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                List<int> v_list = new List<int>();
-                foreach (string canhke in v_row_canhke)
-                {
-                    v_list.Add(int.Parse(canhke));
 
-                }
-                v_listMatrix2.Add(v_list);
+        string[] lines = File.ReadAllLines(file);
+        n = int.Parse(lines[0]);
+        v_listMatrix2 = new List<List<int>>();
+
+        for (int i = 1; i <= n; i++)
+        {
+            if (i < lines.Length)
+            {
+                string[] neighbors = lines[i].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                List<int> adjacencyList = neighbors.Select(int.Parse).ToList();
+                v_listMatrix2.Add(adjacencyList);
             }
             else
             {
-                v_listMatrix2.Add(new List<int>());//đỉnh cô lập
+                v_listMatrix2.Add(new List<int>()); // Đỉnh cô lập
             }
         }
     }
+
     class CEdge
     {
-        public int u
+        public int u { get; set; }
+        public int v { get; set; }
+
+        public CEdge(int u, int v)
         {
-            get; set;
+            this.u = u;
+            this.v = v;
         }
-        public int v
-        {
-            get; set;
-        }
-        public CEdge(int u, int v) { }
     }
-    public static void ConvertToEdgeList2()
+
+    private static void ChuyenSangDanhSachCanh()
     {
         v_edges2 = new List<CEdge>();
-        //tạo chuỗi không trùng phần tử
         HashSet<string> v_seenEdges = new HashSet<string>();
+
         for (int u = 0; u < n; u++)
         {
             foreach (int v in v_listMatrix2[u])
             {
-                //u+1 : đỉnh 1..5
-                string edgeKey = u + 1 < v ? $"{u + 1}-{v}" : $"{v}-{u + 1}";//đảm bảo không bị trùng lặp
-                if (!v_seenEdges.Contains(edgeKey))
+                if (u + 1 < v) // Chỉ xét cạnh theo một chiều để tránh trùng lặp
                 {
-                    v_edges2.Add(new CEdge(u + 1, v));
-                    //thêm vào hash
-                    v_seenEdges.Add(edgeKey);
-
+                    string edgeKey = $"{u + 1}-{v}";
+                    if (!v_seenEdges.Contains(edgeKey))
+                    {
+                        v_edges2.Add(new CEdge(u + 1, v));
+                        v_seenEdges.Add(edgeKey);
+                    }
                 }
-
             }
         }
     }
-    static void WriteFile2(string Oufile)
+
+    private static void Writefile2(string outputFile)
     {
-        using (StreamWriter writer = new StreamWriter(Oufile))
+        v_edges2.Sort((a, b) =>
+        {
+            if (a.u == b.u) return a.v.CompareTo(b.v);
+            return a.u.CompareTo(b.u);
+        });
+
+        using (StreamWriter writer = new StreamWriter(outputFile))
         {
             writer.WriteLine($"{n} {v_edges2.Count}");
             foreach (var edge in v_edges2)
             {
-                writer.WriteLine(edge.u + " " + edge.v);
+                writer.WriteLine($"{edge.u} {edge.v}");
             }
-            Console.WriteLine("successfully");
         }
-
-
+        Console.WriteLine("Chuyển đổi thành công!");
     }
-    public static void Findnote3()
+
+
+
+    private static int[,] adjacencyMatrix;
+    private static int nodeCount;
+    private static List<int> sinkNodes;
+
+    public void Bai3()
     {
-        Node3 = new int[n];
-        for (int i = 0; i < n; i++)
+        string inputFile = "U:\\THToandothi\\BonChua.INP";
+        string outputFile = "U:\\THToandothi\\BonChua.OUT";
+        ReadMatrix3(inputFile);
+        IdentifySinkNodes();
+        WriteToFile(outputFile);
+    }
+
+    private static void ReadMatrix3(string file)
+    {
+        if (!File.Exists(file))
         {
-            bool hasOutEdge = false;
+            Console.WriteLine("Error: Unable to read file BonChua.INP.");
+            return;
+        }
 
+        string[] lines = File.ReadAllLines(file);
+        nodeCount = int.Parse(lines[0]);
+        adjacencyMatrix = new int[nodeCount, nodeCount];
 
+        for (int i = 0; i < nodeCount; i++)
+        {
+            string[] row = lines[i + 1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int j = 0; j < nodeCount; j++)
+            {
+                adjacencyMatrix[i, j] = int.Parse(row[j]);
+            }
         }
     }
-    public static void Bai4()
+
+    private static void IdentifySinkNodes()
     {
-        string inFile = "U:\\THToandothi\\ChuyenVi.INP";
-        string outFile = "U:\\THToandothi\\ChuyenVi.OUT";
+        sinkNodes = new List<int>();
+
+        for (int i = 0; i < nodeCount; i++)
+        {
+            bool hasOutgoingEdge = false;
+            for (int j = 0; j < nodeCount; j++)
+            {
+                if (adjacencyMatrix[i, j] == 1)
+                {
+                    hasOutgoingEdge = true;
+                    break;
+                }
+            }
+            if (!hasOutgoingEdge) // No outgoing edges
+            {
+                sinkNodes.Add(i + 1); // Nodes are numbered from 1
+            }
+        }
+    }
+
+    private static void WriteToFile(string outputFile)
+    {
+        using (StreamWriter writer = new StreamWriter(outputFile))
+        {
+            writer.WriteLine(sinkNodes.Count);
+            if (sinkNodes.Count > 0)
+            {
+                writer.WriteLine(string.Join(" ", sinkNodes));
+            }
+        }
+        Console.WriteLine("Results have been written to BonChua.OUT");
+    }
+
+    public void Bai4()
+    {
+        string inFile = "U:\\THToandothi\\DSKe2Canh.INP";
+        string outFile = "U:\\THToandothi\\DSKe2Canh.OUT";
         ReadMatrix4(inFile);
+        TrainsposedGraph4();
         WriteFile4(outFile);
     }
+
     static void ReadMatrix4(string infile)
     {
         string[] Lines = File.ReadAllLines(infile);
-        n = int.Parse(Lines[0]);//đọc cố định
+        n = int.Parse(Lines[0]); // Read the number of nodes
         v_adjList4 = new List<int>[n + 1];
-        for (int i = 1; i < n; i++)
+
+        for (int i = 1; i <= n; i++)
         {
             v_adjList4[i] = new List<int>();
             if (!string.IsNullOrWhiteSpace(Lines[i]))
@@ -464,44 +540,120 @@ public class Buoi2
                 foreach (string part in parts)
                 {
                     v_adjList4[i].Add(int.Parse(part));
-
                 }
-
-
             }
-
-
-
         }
-
     }
+
     public static void TrainsposedGraph4()
     {
+        vout_Graph4 = new List<int>[n + 1];
 
+        for (int i = 1; i <= n; i++)
+        {
+            vout_Graph4[i] = new List<int>();
+        }
+
+        for (int u = 1; u <= n; u++)
+        {
+            foreach (int v in v_adjList4[u])
+            {
+                vout_Graph4[v].Add(u); // Reverse the edge
+            }
+        }
+
+        for (int u = 1; u <= n; u++)
+        {
+            vout_Graph4[u].Sort();
+        }
     }
+
     public static void WriteFile4(string outfile)
     {
-
+        using (StreamWriter sw = new StreamWriter(outfile))
+        {
+            sw.WriteLine(n);
+            for (int i = 1; i <= n; i++)
+            {
+                sw.WriteLine(string.Join(" ", vout_Graph4[i]));
+            }
+        }
+        Console.WriteLine("successfully");
     }
-    public static void Bai5()
+
+    public void Bai5()
     {
-
+        string inFile = "U:\\THToandothi\\TrungBinhCanh.INP";
+        string outFile = "U:\\THToandothi\\TrungBinhCanh.OUT";
+        ReadMatrix5(inFile);
+        AvgEdge5();
+        WriteFile5(outFile);
     }
+
     static void ReadMatrix5(string infile)
     {
+        string[] lines = File.ReadAllLines(infile);
+        // Số đỉnh n và số cạnh m
+        string[] firstline = lines[0].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        n = int.Parse(firstline[0]);
+        m = int.Parse(firstline[1]);
 
+        // Các dòng tiếp theo chứa danh sách cạnh
+        v_arrayMatrix5 = new int[m + 1, 3];
+        for (int i = 1; i <= m; i++)
+        {
+            string[] v_edge = lines[i].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            v_arrayMatrix5[i, 0] = int.Parse(v_edge[0]);
+            v_arrayMatrix5[i, 1] = int.Parse(v_edge[1]);
+            v_arrayMatrix5[i, 2] = int.Parse(v_edge[2]);
+        }
     }
+
     static void AvgEdge5()
     {
-
+        // Hàm tính giá trị trung bình cạnh và tìm cạnh có trọng số lớn nhất
+        v_AvgEdge = 0;
+        v_Maxedge = 0;
+        for (int i = 1; i <= m; i++)
+        {
+            v_AvgEdge += v_arrayMatrix5[i, 2];
+            if (v_Maxedge < v_arrayMatrix5[i, 2])
+            {
+                v_Maxedge = v_arrayMatrix5[i, 2];
+            }
+        }
+        v_AvgEdge = (double)v_AvgEdge / m;  // Đảm bảo chia cho m là số thực
     }
+
     public static void WriteFile5(string outfile)
     {
+        using (StreamWriter sw = new StreamWriter(outfile))
+        {
+            sw.WriteLine(v_AvgEdge.ToString("F2"));  // Đảm bảo định dạng với 2 chữ số thập phân
 
+            // Đếm số lượng cạnh có độ dài lớn nhất
+            int countMaxEdge = 0;
+            List<string> maxEdges = new List<string>();
+            for (int i = 1; i <= m; i++)
+            {
+                if (v_arrayMatrix5[i, 2] == v_Maxedge)
+                {
+                    countMaxEdge++;
+                    maxEdges.Add(string.Join(" ", v_arrayMatrix5[i, 0], v_arrayMatrix5[i, 1], v_arrayMatrix5[i, 2]));
+                }
+            }
+
+            // In ra số lượng các cạnh có độ dài lớn nhất
+            sw.WriteLine(countMaxEdge);
+
+            // In ra các cạnh có độ dài lớn nhất
+            foreach (var edge in maxEdges)
+            {
+                sw.WriteLine(edge);
+            }
+        }
+        Console.WriteLine("Successfully written to file.");
     }
-
-
-
 
 }
 public class Buoi3
@@ -1261,131 +1413,145 @@ public class Buoi5
 
     public void Bai2()
     {
-        string input = "U:\\THToandothi\\Dijkstra.INP";
-        string output = "U:\\THToandothi\\Dijkstra.OUT";
+        string input = "U:\\THToandothi\\NganNhatX.INP";
+        string output = "U:\\THToandothi\\NganNhatX.OUT";
         ReadMatrix2(input);
-        FindShortestPath2();
+        //FindShortestPath2();
         WriteFile2(output);
     }
+
+
+    // Hàm đọc ma trận kề từ file
     static void ReadMatrix2(string input)
     {
         string[] lines = File.ReadAllLines(input);
         string[] Firstline = lines[0].Split();
-        n = int.Parse(Firstline[0]);
-        m = int.Parse(Firstline[1]);
-        s = int.Parse(Firstline[2]);
-        t = int.Parse(Firstline[3]);
+        n = int.Parse(Firstline[0]);  // Số đỉnh
+        m = int.Parse(Firstline[1]);  // Số cạnh
+        s = int.Parse(Firstline[2]);  // Đỉnh s
+        t = int.Parse(Firstline[3]);  // Đỉnh t
+        x = int.Parse(Firstline[4]);  // Đỉnh x (trung gian)
 
-        //khởi tại ma trận mới 
+        // Khởi tạo danh sách kề cho đồ thị
         v_MatrixGraph = new List<(int, int)>[n + 1];
         for (int i = 1; i <= n; i++)
         {
             v_MatrixGraph[i] = new List<(int, int)>();
         }
+
+        // Đọc các cạnh từ dữ liệu đầu vào
         for (int i = 1; i <= m; i++)
         {
             string[] edge = lines[i].Split();
-            int u = int.Parse(edge[0]);//đỉnh u
-            int v = int.Parse(edge[1]);//đỉnh v
-            int w = int.Parse(edge[2]);//trọng số
+            int u = int.Parse(edge[0]);
+            int v = int.Parse(edge[1]);
+            int w = int.Parse(edge[2]);
 
-            v_MatrixGraph[u].Add((v, w));//đỉnh v kề u có trọng số w
-            v_MatrixGraph[v].Add((u, w));//đỉnh u kề v có trọng số w
-
-
-
+            v_MatrixGraph[u].Add((v, w));  // Đỉnh v kề u với trọng số w
+            v_MatrixGraph[v].Add((u, w));  // Đỉnh u kề v với trọng số w (đồ thị vô hướng)
         }
-
     }
+
+    // Hàm Dijkstra để tính khoảng cách ngắn nhất từ một đỉnh
     static (int[], int[]) Dijkstra2(int start)
     {
-        int[] dist = new int[n + 1];//lưu khoảng cách từ start đến các đỉnh
-        int[] parrent = new int[n + 1];//mảng lưu cha của mỗi đỉnh truy vết đường đi
-        bool[] visited = new bool[n + 1];//mảng đánh dấu đã xét
+        int[] dist = new int[n + 1];  // Khoảng cách từ start đến các đỉnh
+        int[] parent = new int[n + 1];  // Mảng lưu cha của mỗi đỉnh để truy vết đường đi
+        bool[] visited = new bool[n + 1];  // Mảng đánh dấu đỉnh đã xét
 
         for (int i = 1; i <= n; i++)
         {
             dist[i] = INF;
-            parrent[i] = -1;//chưa có cha
-
+            parent[i] = -1;  // Chưa có cha
         }
         dist[start] = 0;
+
         // Hàng đợi ưu tiên SortedSet (khoảng cách, đỉnh)
         SortedSet<(int, int)> pq = new SortedSet<(int, int)>();
         pq.Add((0, start));
+
         while (pq.Count > 0)
         {
-            var (du, u) = pq.Min;//lấy đỉnh có khoảng cách nhỏ nhất
-            pq.Remove(pq.Min);//xóa khỏi hàng đợi
-            if (visited[u]) continue;//nếu đã xử lý , bỏ qua
-            visited[u] = true;//đánh dấu đỉnh đã xét
-            //int newDist w; khoảng cách mới đến y
+            var (du, u) = pq.Min;  // Lấy đỉnh có khoảng cách nhỏ nhất
+            pq.Remove(pq.Min);  // Xóa khỏi hàng đợi
 
-            foreach (var (v, w) in v_MatrixGraph[u])//nếu tìm thấy đường đi tốt hơn
+            if (visited[u]) continue;  // Nếu đã xử lý, bỏ qua
+            visited[u] = true;  // Đánh dấu đỉnh đã xét
+
+            // Kiểm tra danh sách kề của u và duyệt qua các đỉnh kề
+            foreach (var (v, w) in v_MatrixGraph[u])
             {
-                dist[v] = dist[u] + w;//cập nhật khoảng cách mới đến v
-                parrent[v] = u;//cập nhật để truy vết
-                pq.Add((dist[v], v));// thêm vào hàng đợi ưu tiên
+                if (dist[v] > dist[u] + w)
+                {
+                    dist[v] = dist[u] + w;  // Cập nhật khoảng cách mới
+                    parent[v] = u;  // Cập nhật cha của v
+                    pq.Add((dist[v], v));  // Thêm vào hàng đợi
+                }
             }
         }
-        return (dist, parrent);
 
+        return (dist, parent);
     }
-    //tìm đường đi ngắn nhất từ s->x-> t
+
+    // Hàm tìm đường đi ngắn nhất từ s -> x -> t
     static (int, List<int>) FindShortestPath2()
     {
-        var (distFromS, parentFromS) = Dijkstra2(s);//từ s đến mọi đỉnh
-        var (distFromX, parentFromX) = Dijkstra2(x);//từ x đến mọi đỉnh
+        var (distFromS, parentFromS) = Dijkstra2(s);  // Từ s đến mọi đỉnh
+        var (distFromX, parentFromX) = Dijkstra2(x);  // Từ x đến mọi đỉnh
 
-        if (distFromS[x] == INF || distFromX[t] == INF)
-            return (-1, new List<int>());//ko có đường đi
+        if (distFromS[x] == INF || distFromX[t] == INF)  // Nếu không có đường đi
+            return (-1, new List<int>());
 
-        int totalDistance = distFromS[x] + distFromX[t];// tổng trọng số
+        int totalDistance = distFromS[x] + distFromX[t];  // Tổng trọng số
         List<int> path = new List<int>();
-        //truy vết đường đi từ s->x
+
+        // Truy vết đường đi từ s -> x
         GetPath(s, x, parentFromS, path);
-        //truy vết đường đi từ x-> t
+
+        // Truy vết đường đi từ x -> t
         GetPath(x, t, parentFromX, path);
 
         return (totalDistance, path);
     }
+
+    // Hàm truy vết đường đi
     static void GetPath(int start, int end, int[] parent, List<int> path)
     {
         List<int> temp = new List<int>();
         int current = end;
-        //vòng lặp truy ngược đường đi
-        while (current != -1)
+        while (current != -1)  // Truy vết ngược từ đích về nguồn
         {
             temp.Add(current);
             current = parent[current];
         }
         temp.Reverse();
 
-        //Nếu path không rỗng(đã có sẵn phần tử s+x), loại bỏ phần tử trùng lập
         if (path.Count > 0)
         {
-            temp.RemoveAt(0);
-
+            temp.RemoveAt(0);  // Loại bỏ đỉnh trùng lặp (vì s -> x sẽ trùng đỉnh x)
         }
+
         path.AddRange(temp);
     }
+
+    // Hàm ghi kết quả ra file
     static void WriteFile2(string output)
     {
         using (StreamWriter sw = new StreamWriter(output))
         {
-            //gọi hàm xử lý
-            var (distance, v_path) = FindShortestPath2();
-            if (distance == -1)//ko co
+            var (distance, path) = FindShortestPath2();  // Gọi hàm tìm đường đi ngắn nhất
+            if (distance == -1)  // Nếu không có đường đi
             {
                 sw.WriteLine("-1");
                 return;
             }
-            sw.WriteLine(distance);
-            sw.WriteLine(string.Join(" ", v_path));
+            sw.WriteLine(distance);  // In tổng trọng số
+            sw.WriteLine(string.Join(" ", path));  // In đường đi
         }
 
-
+        Console.WriteLine("Successfully processed.");
     }
+
     public void Bai3()
     {
         string input = "U:\\THToandothi\\FloydWarshall.INP";
@@ -1394,10 +1560,11 @@ public class Buoi5
         FloydWarshallAlgorithm();
         WriteFile3(output);
     }
+    // Hàm đọc ma trận kề từ file
     static void ReadMatrix3(string input)
     {
         string[] lines = File.ReadAllLines(input);
-        n = int.Parse(lines[0]);//số đỉnh
+        n = int.Parse(lines[0]);  // Số đỉnh
 
         v_dist3 = new int[n + 1, n + 1];
         for (int i = 1; i <= n; i++)
@@ -1406,32 +1573,34 @@ public class Buoi5
             for (int j = 1; j <= n; j++)
             {
                 v_dist3[i, j] = int.Parse(row[j - 1]);
-                if (i != j && v_dist3[i, j] == 0)//ko có cạnh thì gán vô cực
+                if (i != j && v_dist3[i, j] == 0) // Không có cạnh thì gán vô cực
                 {
-                    v_dist3[i, j] = INF / 2;
+                    v_dist3[i, j] = INF;
                 }
             }
         }
-
-
     }
-    //thuật toán Floyd-Warshall
+
+    // Thuật toán Floyd-Warshall
     static void FloydWarshallAlgorithm()
     {
-        for (int k = 1; k <= n; k++)//duyệt qua từng đỉnh
+        for (int k = 1; k <= n; k++) // Duyệt qua từng đỉnh trung gian k
         {
-            for (int i = 1; i <= n; i++)
+            for (int i = 1; i <= n; i++) // Duyệt qua từng đỉnh nguồn i
             {
-                for (int j = 1; j <= n; j++)
+                for (int j = 1; j <= n; j++) // Duyệt qua từng đỉnh đích j
                 {
-                    if (v_dist3[i, j] > v_dist3[i, k] + v_dist3[k, j])//tính lại trọng số nếu nhỏ hơn thì thay thế
+                    // Nếu tìm thấy đường đi ngắn hơn qua đỉnh k
+                    if (v_dist3[i, j] > v_dist3[i, k] + v_dist3[k, j])
                     {
-                        v_dist3[i, j] -= v_dist3[i, k] + v_dist3[k, j];
+                        v_dist3[i, j] = v_dist3[i, k] + v_dist3[k, j]; // Cập nhật đường đi ngắn hơn
                     }
                 }
             }
         }
     }
+
+    // Hàm ghi kết quả ra file
     static void WriteFile3(string output)
     {
         using (StreamWriter sw = new StreamWriter(output))
@@ -1441,17 +1610,16 @@ public class Buoi5
             {
                 for (int j = 1; j <= n; j++)
                 {
-                    if (v_dist3[i, j] == INF / 2)
+                    // Nếu không có đường đi, in "INF"
+                    if (v_dist3[i, j] == INF)
                         sw.Write("INF ");
                     else
                         sw.Write(v_dist3[i, j] + " ");
-
-                    sw.WriteLine();
                 }
-
+                sw.WriteLine();
             }
-
         }
+        Console.WriteLine("Successfully processed.");
     }
 }
 public class Buoi6
@@ -1470,46 +1638,9 @@ public class Buoi6
     private static int v;
     private static int w;
 
-    public void Bai1()
-    {
-        string inFile = "U:\\THToandothi\\CayKhung.INP";
-        string outFile = "U:\\THToandothi\\CayKhung.OUT";
-        ReadMatrix(inFile);
-        //DFS_Stack(1);
-        v_visited = new bool[n + 1];
-        v_treeEdges = new List<(int, int, int)>();//khai báo trc đệ qui
-        DFS(1);
-        WriteFile(outFile);
-    }
-
-    static void ReadMatrix(string input)
-    {
-        // read inputed information
-        string[] lines = File.ReadAllLines(input);
-        //line 0  là đỉnh và startnode(s)
-        string[] Firstline = lines[0].Split();
-        n = int.Parse(Firstline[0]);// số đỉnh
-        m = int.Parse(Firstline[1]);// startnode
 
 
-        //khởi tạo danh sách kề
-        v_MatrixGraph = new List<(int, int)>[n + 1];
-        for (int i = 1; i <= n; i++)
-        {
-            v_MatrixGraph[i] = new List<(int, int)>();
-        }
-        for (int i = 1; i <= n; i++)
-        {
-            string[] edge = lines[i].Split();
-            int u = int.Parse(edge[0]);
-            int v = int.Parse(edge[1]);
-            int w = int.Parse(edge[2]);
 
-            v_MatrixGraph[u].Add((v, w));
-            v_MatrixGraph[v].Add((u, w));//đồ thị vô hướng
-        }
-
-    }
     static void DFS_Stack(int n)
     {
         //stack sẽ hiệu quả hơn trong project lớn nhưng dài
@@ -1533,9 +1664,44 @@ public class Buoi6
         }
 
     }
+    public void Bai1()
+    {
+        string inFile = "U:\\THToandothi\\CayKhung.INP";
+        string outFile = "U:\\THToandothi\\CayKhung.OUT";
+        ReadMatrix(inFile);
+        v_visited = new bool[n + 1];
+        v_treeEdges = new List<(int, int, int)>();
+        DFS(1);
+        WriteFile(outFile);
+    }
+
+    static void ReadMatrix(string input)
+    {
+        string[] lines = File.ReadAllLines(input);
+        string[] firstLine = lines[0].Split();
+        n = int.Parse(firstLine[0]); // số đỉnh
+        m = int.Parse(firstLine[1]); // số cạnh
+
+        v_MatrixGraph = new List<(int, int)>[n + 1];
+        for (int i = 1; i <= n; i++)
+        {
+            v_MatrixGraph[i] = new List<(int, int)>();
+        }
+
+        for (int i = 1; i <= m; i++) // đọc đúng số cạnh
+        {
+            string[] edge = lines[i].Split();
+            int u = int.Parse(edge[0]);
+            int v = int.Parse(edge[1]);
+            int w = int.Parse(edge[2]);
+
+            v_MatrixGraph[u].Add((v, w));
+            v_MatrixGraph[v].Add((u, w)); // đồ thị vô hướng
+        }
+    }
+
     static void DFS(int u)
     {
-        //cơ sở
         v_visited[u] = true;
         foreach (var (v, w) in v_MatrixGraph[u])
         {
@@ -1547,7 +1713,6 @@ public class Buoi6
         }
     }
 
-
     static void WriteFile(string output)
     {
         using (StreamWriter sw = new StreamWriter(output))
@@ -1555,10 +1720,8 @@ public class Buoi6
             sw.WriteLine(v_treeEdges.Count);
             foreach (var (u, v, w) in v_treeEdges)
             {
-
-                sw.WriteLine($"{u}  {v} {w}");
+                sw.WriteLine($"{u} {v} {w}");
             }
-
         }
         Console.WriteLine("successfully");
     }
@@ -1807,45 +1970,96 @@ public class Buoi6
         Console.WriteLine("WriteFile2");
     }
 
-    public static void Bai5()
-    {
 
-        string inFile = "U:\\THToandothi\\CayKhungX.INP";
-        string outFile = "U:\\THToandothi\\CayKhungX.OUT";
-        ReadMatrix4(inFile);
-        int v_rest = Kruskal4();
-        WriteFile4(outFile, v_rest);
+    static int villageCount5, builtRoadCount5;
+    static List<(int cost5, int villageA5, int villageB5)> roadList5;
+    static int[] parentSet5;
+
+    public void Bai5()
+    {
+        string inputPath5 = "U:\\THToandothi\\Roads.INP";
+        string outputPath5 = "U:\\THToandothi\\Roads.OUT";
+        LoadRoadData5(inputPath5);
+        int totalBuildCost5 = BuildMinimumNetwork5();
+        SaveOutput5(outputPath5, totalBuildCost5);
     }
-    static void ReadMatrix5(string inFile)
+
+    static void LoadRoadData5(string filePath5)
     {
-        string[] lines = File.ReadAllLines(inFile);
-        n = int.Parse(lines[0]);//đỉnh
+        string[] fileLines5 = File.ReadAllLines(filePath5);
+        villageCount5 = int.Parse(fileLines5[0]);
+        roadList5 = new List<(int, int, int)>();
 
-        v_treeEdges = new List<(int, int, int)>();
-
-        //đọc ma trận kề
-        for (int i = 1; i <= n; i++)
+        // Load distance matrix (only upper triangle, undirected graph)
+        for (int i5 = 1; i5 <= villageCount5; i5++)
         {
-            string[] row = lines[i].Split(new char[] { ' ' });
-            for (int j = i + 1; j <= n; j++)
-            {//chỉ đọc nửa trên ma trận kề đồ thị vô hướng
-                int w = int.Parse(row[j - 1]);//đọc trọng số từ ma trận
-                v_treeEdges.Add((w, i - 1, j - 1));//thêm cạnh vào danh sách
-
-
+            string[] rowValues5 = fileLines5[i5].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int j5 = i5 + 1; j5 <= villageCount5; j5++)
+            {
+                int distance5 = int.Parse(rowValues5[j5 - 1]);
+                roadList5.Add((distance5, i5 - 1, j5 - 1));
             }
-
         }
-        q = int.Parse(lines[n + 1]);//đọc số cạnh đã xây n+1
-        //Thêm các cạnh đã xây vào danh sách với trọng số 0 , 0 là để ưu tiên các cạnh trong Kruskal
-        for (int i = 1; i < n; i++)
+
+        builtRoadCount5 = int.Parse(fileLines5[villageCount5 + 1]);
+
+        for (int k5 = 0; k5 < builtRoadCount5; k5++)
         {
-
-
+            string[] edgeInfo5 = fileLines5[villageCount5 + 2 + k5].Split();
+            int builtA5 = int.Parse(edgeInfo5[0]) - 1;
+            int builtB5 = int.Parse(edgeInfo5[1]) - 1;
+            roadList5.Add((0, builtA5, builtB5)); // already built, zero cost
         }
-
     }
 
+    static int FindRoot5(int node5)
+    {
+        if (parentSet5[node5] != node5)
+            parentSet5[node5] = FindRoot5(parentSet5[node5]);
+        return parentSet5[node5];
+    }
+
+    static void UnionSets5(int a5, int b5)
+    {
+        int rootA5 = FindRoot5(a5);
+        int rootB5 = FindRoot5(b5);
+        if (rootA5 != rootB5)
+            parentSet5[rootA5] = rootB5;
+    }
+
+    static int BuildMinimumNetwork5()
+    {
+        parentSet5 = new int[villageCount5];
+        for (int i5 = 0; i5 < villageCount5; i5++)
+            parentSet5[i5] = i5;
+
+        roadList5.Sort((x5, y5) => x5.cost5.CompareTo(y5.cost5));
+
+        int addedCost5 = 0;
+        int connectedEdges5 = 0;
+
+        foreach (var (cost5, villageX5, villageY5) in roadList5)
+        {
+            if (FindRoot5(villageX5) != FindRoot5(villageY5))
+            {
+                UnionSets5(villageX5, villageY5);
+                if (cost5 > 0)
+                    addedCost5 += cost5;
+                connectedEdges5++;
+
+                if (connectedEdges5 == villageCount5 - 1)
+                    break;
+            }
+        }
+
+        return addedCost5;
+    }
+
+    static void SaveOutput5(string outputFile5, int resultCost5)
+    {
+        File.WriteAllText(outputFile5, resultCost5.ToString());
+        Console.WriteLine("Minimum build cost (5): " + resultCost5);
+    }
 
 
 }
@@ -1859,16 +2073,16 @@ public class Buoi7
     public static int[,] V_arrayMatrix_tmp { get; private set; }
     public static int[,] V_arrayMatrix { get; private set; }
 
-    public static void Bai1()
+    public void Bai1()
     {
         string input = "U:\\THToandothi\\EulerVoHuong.INP";
         string output = "U:\\THToandothi\\EulerVoHuong.OUT";
         ReadMatrix(input);
-        int v_rest = Euler1();
-        Writefile1(output, v_rest);
+        int v_result = Euler1();
+        WriteFile1(output, v_result);
     }
 
-    private static void Writefile1(string output, int result)
+    private static void WriteFile1(string output, int result)
     {
         File.WriteAllText(output, result.ToString());
         Console.WriteLine("writefile 1");
@@ -1876,85 +2090,75 @@ public class Buoi7
 
     static void ReadMatrix(string file)
     {
-        if (!File.Exists(file))//debug
+        if (!File.Exists(file))
         {
-            Console.WriteLine("file is not exit");
+            Console.WriteLine("File does not exist.");
             Console.ReadKey();
+            return;
         }
 
+        string[] lines = File.ReadAllLines(file);
+        n = Convert.ToInt32(lines[0]);
+        V_arrayMatrix = new int[n, n];
 
-
-        else
+        for (int i = 0; i < n; i++)
         {
-            string[] lines = File.ReadAllLines(file);       // số đỉnh của đồ thị
-            n = Convert.ToInt32(lines[0]);
-            V_arrayMatrix = new int[n, n];
-            for (int i = 1; i <= n; i++)
+            string[] row = lines[i + 1].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int j = 0; j < n; j++)
             {
-                //đọc dòng tiếp theo
-                string[] row = lines[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                for (int j = 1; j <= n; j++)
-                {
-                    //đọc theo line (row)
-                    V_arrayMatrix[i, j] = Convert.ToInt32(row[j - 1]);
-
-                }
-
-
+                V_arrayMatrix[i, j] = Convert.ToInt32(row[j]);
             }
         }
-
-
     }
+
     static int Euler1()
     {
         if (!Connected()) return 0;
 
-        int v_row = CountOddDegree();
+        int oddDegreeCount = CountOddDegree();
 
-        if (v_row == 0) return 1;//chu trình euler không có đỉnh 
-        if (v_row == 2) return 2;//đường đi Euler, có 2 đỉnh lẻ
+        if (oddDegreeCount == 0) return 1; // Có chu trình Euler
+        if (oddDegreeCount == 2) return 2; // Có đường đi Euler
 
-        return 0;
-
+        return 0; // Không có
     }
 
     private static int CountOddDegree()
     {
-        int v_oddCount = 0;
-        for (int i = 1; i <= n; i++)//duyệt hàng
+        int count = 0;
+        for (int i = 0; i < n; i++)
         {
-            int v_degress = 0;
-            for (int j = 1; j <= n; j++)//duyệt cột
+            int degree = 0;
+            for (int j = 0; j < n; j++)
             {
-                v_degress += V_arrayMatrix[i, j];//Đếm số cạnh
-
+                degree += V_arrayMatrix[i, j];
             }
-            if (v_degress % 2 == 1) v_oddCount++; //nếu là đậu thì tăng count
+            if (degree % 2 == 1) count++;
         }
-        return v_oddCount;
+        return count;
     }
-    //kiếm liên thông bằng DFS
+
     static void DFS1(int u)
     {
-        v_visited[u] = true;//đánh dấu đỉnh u được thăm
-        for (int v = 1; v <= n; v++)//lần lượt duyệt từng đỉnh
+        v_visited[u] = true;
+        for (int v = 0; v < n; v++)
         {
-            if (V_arrayMatrix[u, v] > 0 && !v_visited[v])//đánh dấu cạnh u và v
+            if (V_arrayMatrix[u, v] > 0 && !v_visited[v])
             {
-                DFS1(v);//gọi đệ quy thăm v
+                DFS1(v);
             }
-
         }
     }
 
     private static bool Connected()
     {
-        v_visited = new bool[n + 1];
+        v_visited = new bool[n];
         int startNode = -1;
-        for (int i = 1; i <= n; i++)
+
+        // Tìm một đỉnh có ít nhất 1 cạnh để bắt đầu DFS
+        for (int i = 0; i < n; i++)
         {
-            for (int j = 1; j <= n; j++)
+            for (int j = 0; j < n; j++)
             {
                 if (V_arrayMatrix[i, j] > 0)
                 {
@@ -1964,110 +2168,392 @@ public class Buoi7
             }
             if (startNode != -1) break;
         }
-        if (startNode == -1) return false;//ko liên thông
 
-        DFS1(startNode);//kiểm tra liên thông
-        //kiểm tra tất cả các đỉnh bậc >0 có được duyệt hay không
-        for (int i = 1; i <= n; i++)
+        if (startNode == -1) return false; // Không có cạnh nào
+
+        DFS1(startNode);
+
+        // Kiểm tra các đỉnh có bậc > 0 đã được duyệt hết chưa
+        for (int i = 0; i < n; i++)
         {
             if (!v_visited[i])
             {
-                for (int j = 1; j <= n; j++)
+                for (int j = 0; j < n; j++)
                 {
-                    if (V_arrayMatrix[i, j] > 0) return false;//nếu ko có cạnh nào , đề không liên thông
+                    if (V_arrayMatrix[i, j] > 0)
+                        return false;
                 }
             }
         }
+
         return true;
     }
 
-
-    public static void Bai3()
+    public void Bai2()
     {
-        string input = "U:\\THToandothi\\ChuTrinhEuler.INP";
-        string output = "U:\\THToandothi\\ChuTrinhEuler.OUT ";
-        ReadMatrix3(input);
-        bool v_f = FindHierholzer3();
-        Writefile3(output, v_f);
+        string input = "U:\\THToandothi\\EulerCoHuong.INP";
+        string output = "U:\\THToandothi\\EulerCoHuong.OUT";
+        ReadMatrix2(input);
+        int v_rest = Euler2();
+        WriteFile2(output, v_rest);
     }
 
-    private static void Writefile3(string output, bool v_f)
+    static void ReadMatrix2(string file)
     {
-        using (StreamWriter sw = new StreamWriter(output))
+        if (!File.Exists(file))
         {
-            if (v_f)
-            {
-                for (int j = 0; j < v_eulerCycle.Count; j++)
-                {
-                    sw.Write(v_eulerCycle[j] + "->");
-                    Console.Write(v_eulerCycle[j] + "->");
-                }
-            }
+            Console.WriteLine("File không tồn tại.");
+            return;
         }
-    }
 
-    private static bool FindHierholzer3()
-    {
-        if (Euler1() == 1)
-        {
-            Hierholzer3();
-            return true;
-        }
-        return false;
-    }
-    //hàm xử lý chu trình euler
-    private static void Hierholzer3()//qua cạnh đó xong xóa cạnh
-    {
-        Stack<int> stack = new Stack<int>();
+        string[] lines = File.ReadAllLines(file);
+        n = int.Parse(lines[0]); // Số đỉnh
+        V_arrayMatrix = new int[n + 1, n + 1]; // Khởi tạo ma trận
 
-        v_eulerCycle = new List<int>();
-        V_arrayMatrix_tmp = (int[,])V_arrayMatrix.Clone();//sao chép ma trận
-        stack.Push(x);
-
-        while (stack.Count > 0)
-        {
-            int u = stack.Peek();
-            bool hasEdge = false;
-            for (int v = 1; v <= n; v++)
-            {
-                if (V_arrayMatrix_tmp[u, v] > 0)
-                {
-                    stack.Push(v);
-                    V_arrayMatrix_tmp[u, v]--;//xóa cạnh từ uv
-                    V_arrayMatrix_tmp[v, u]--;//xóa cạnh từ vu
-                    hasEdge = true;
-                    break;//thoát khỏi for
-                }
-
-            }
-            if (!hasEdge)
-            {
-                v_eulerCycle.Add(stack.Pop());
-
-            }
-        }
-    }
-
-    private static void ReadMatrix3(string input)
-    {
-        string[] lines = File.ReadAllLines(input);
-
-        string[] firstline = lines[0].Split();
-        n = int.Parse(firstline[0]);//đọc số đỉnh
-
-        x = int.Parse(firstline[1]);//đọc số đỉnh bắt đầu
-        V_arrayMatrix = new int[n + 1, n + 1];
+        // Đọc ma trận kề
         for (int i = 1; i <= n; i++)
         {
             string[] row = lines[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             for (int j = 1; j <= n; j++)
             {
                 V_arrayMatrix[i, j] = int.Parse(row[j - 1]);
+            }
+        }
+    }
 
+    static void DFS2(int u)
+    {
+        v_visited[u] = true;
+        for (int v = 1; v <= n; v++)
+        {
+            // Kiểm tra liên thông yếu: xét các cạnh hai chiều
+            if ((V_arrayMatrix[u, v] > 0 || V_arrayMatrix[v, u] > 0) && !v_visited[v])
+            {
+                DFS2(v); // Đệ quy DFS để kiểm tra liên thông yếu
+            }
+        }
+    }
+
+    static bool Isweakly()
+    {
+        v_visited = new bool[n + 1];
+        DFS2(1); // Duyệt đỉnh u
+        for (int i = 1; i <= n; i++)
+        {
+            if (!v_visited[i])
+            {
+                return false; // Nếu có đỉnh chưa được thăm, đồ thị không liên thông yếu
+            }
+        }
+        return true;
+    }
+
+    private static int Euler2()
+    {
+        // Kiểm tra đồ thị có phải liên thông yếu không
+        if (!Isweakly())
+        {
+            return 0; // Đồ thị không liên thông yếu
+        }
+
+        // Mảng lưu bậc vào và bậc ra của các đỉnh
+        int[] inDegrees = new int[n + 1];
+        int[] outDegrees = new int[n + 1];
+
+        // Tính toán bậc vào và bậc ra cho từng đỉnh
+        for (int u = 1; u <= n; u++)
+        {
+            for (int v = 1; v <= n; v++)
+            {
+                if (V_arrayMatrix[u, v] > 0) // Nếu có cạnh từ u đến v
+                {
+                    outDegrees[u]++;
+                    inDegrees[v]++;
+                }
             }
         }
 
+        int startNodes = 0, endNodes = 0;
+
+        // Kiểm tra điều kiện cho chu trình Euler và đường đi Euler
+        for (int i = 1; i <= n; i++)
+        {
+            if (outDegrees[i] - inDegrees[i] == 1)
+            {
+                startNodes++; // Có một đỉnh có bậc ra > bậc vào 1 đơn vị (start node)
+            }
+            else if (inDegrees[i] - outDegrees[i] == 1)
+            {
+                endNodes++; // Có một đỉnh có bậc vào > bậc ra 1 đơn vị (end node)
+            }
+            else if (inDegrees[i] != outDegrees[i])
+            {
+                return 0; // Nếu có bất kỳ đỉnh nào mà bậc vào khác bậc ra hơn 1 đơn vị thì không có chu trình hay đường đi Euler
+            }
+        }
+
+        // Kiểm tra các trường hợp
+        if (startNodes == 0 && endNodes == 0)
+        {
+            return 1; // Đồ thị có chu trình Euler
+        }
+        else if (startNodes == 1 && endNodes == 1)
+        {
+            return 2; // Đồ thị có đường đi Euler
+        }
+
+        return 0; // Đồ thị không có chu trình Euler và cũng không có đường đi Euler
     }
+
+    static void WriteFile2(string output, int result)
+    {
+        File.WriteAllText(output, result.ToString());
+        Console.WriteLine("Output: " + result);
+    }
+
+
+    public void Bai3()
+    {
+        string input = "U:\\THToandothi\\ChuTrinhEuler.INP";
+        string output = "U:\\THToandothi\\ChuTrinhEuler.OUT";
+        ReadMatrix3(input);
+        List<int> v_eulerCycle = FindHierholzer3();
+        Writefile3(output, v_eulerCycle);
+    }
+
+    private static void Writefile3(string output, List<int> v_eulerCycle)
+    {
+        using (StreamWriter sw = new StreamWriter(output))
+        {
+            if (v_eulerCycle != null && v_eulerCycle.Count > 0)
+            {
+                for (int j = 0; j < v_eulerCycle.Count - 1; j++)
+                {
+                    sw.Write(v_eulerCycle[j] + " ");
+                    Console.Write(v_eulerCycle[j] + " ");
+                }
+                sw.Write(v_eulerCycle[v_eulerCycle.Count - 1]);  // Không in "->" ở cuối chu trình
+                Console.WriteLine(v_eulerCycle[v_eulerCycle.Count - 1]);
+            }
+            else
+            {
+                sw.WriteLine("Không có chu trình Euler.");
+                Console.WriteLine("Không có chu trình Euler.");
+            }
+        }
+    }
+
+    private static List<int> FindHierholzer3()
+    {
+        if (Euler1() == 1)
+        {
+            List<int> eulerCycle = Hierholzer3();
+            return eulerCycle;
+        }
+        return null;
+    }
+
+    // Hàm xử lý chu trình Euler
+    private static List<int> Hierholzer3()
+    {
+        Stack<int> stack = new Stack<int>();
+        List<int> eulerCycle = new List<int>();
+
+        // Sao chép ma trận kề ban đầu
+        V_arrayMatrix_tmp = (int[,])V_arrayMatrix.Clone();
+
+        stack.Push(x); // Đẩy đỉnh bắt đầu vào stack
+
+        while (stack.Count > 0)
+        {
+            int u = stack.Peek();
+            bool hasEdge = false;
+
+            // Duyệt qua tất cả các đỉnh kề u
+            for (int v = 1; v <= n; v++)
+            {
+                if (V_arrayMatrix_tmp[u, v] > 0)
+                {
+                    // Thêm v vào stack và xóa cạnh giữa u và v
+                    stack.Push(v);
+                    V_arrayMatrix_tmp[u, v]--; // Xóa cạnh u->v
+                    V_arrayMatrix_tmp[v, u]--; // Xóa cạnh v->u (đồ thị vô hướng)
+                    hasEdge = true;
+                    break; // Duyệt cạnh đầu tiên tìm thấy
+                }
+            }
+
+            if (!hasEdge)
+            {
+                // Nếu không còn cạnh nào, pop đỉnh ra và thêm vào chu trình
+                eulerCycle.Add(stack.Pop());
+            }
+        }
+
+        // Đảm bảo rằng chu trình Euler khép kín tại đỉnh ban đầu
+        if (eulerCycle[0] != x)
+        {
+            eulerCycle.Add(x); // Nếu không, thêm đỉnh bắt đầu vào cuối chu trình
+        }
+
+        return eulerCycle;
+    }
+
+
+    private static void ReadMatrix3(string input)
+    {
+        string[] lines = File.ReadAllLines(input);
+
+        string[] firstline = lines[0].Split();
+        n = int.Parse(firstline[0]); // Đọc số đỉnh
+        x = int.Parse(firstline[1]); // Đọc đỉnh bắt đầu
+
+        V_arrayMatrix = new int[n + 1, n + 1];
+
+        for (int i = 1; i <= n; i++)
+        {
+            string[] row = lines[i].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int j = 1; j <= n; j++)
+            {
+                V_arrayMatrix[i, j] = int.Parse(row[j - 1]); // Đọc ma trận kề
+            }
+        }
+    }
+
+
+    static int numVertices;  // Số đỉnh
+    static int[,] adjacencyMatrix;  // Ma trận kề của đồ thị
+    static List<List<int>> drawingStrokes;  // Danh sách các nét vẽ
+
+    // Hàm chính để thực hiện việc vẽ
+    public void Bai4()
+    {
+        string inputFile = "U:\\THToandothi\\kNet.INP";
+        string outputFile = "U:\\THToandothi\\kNet.OUT";
+
+        ReadGraphData(inputFile);
+        int minStrokes = FindMinStrokes();
+        WriteResult(outputFile, minStrokes);
+    }
+
+    // Hàm đọc dữ liệu từ file
+    private static void ReadGraphData(string inputFile)
+    {
+        string[] lines = File.ReadAllLines(inputFile);
+        numVertices = int.Parse(lines[0]); // Số đỉnh
+        adjacencyMatrix = new int[numVertices + 1, numVertices + 1]; // Ma trận kề
+
+        for (int i = 1; i <= numVertices; i++)
+        {
+            string[] row = lines[i].Split(' ');
+            for (int j = 1; j <= numVertices; j++)
+            {
+                adjacencyMatrix[i, j] = int.Parse(row[j - 1]);
+            }
+        }
+    }
+
+    // Hàm tính số nét vẽ tối thiểu và lưu kết quả vào drawingStrokes
+    private static int FindMinStrokes()
+    {
+        List<int> oddDegreeVertices = CountOddDegreeVertices();
+        drawingStrokes = new List<List<int>>();
+
+        // Kiểm tra số lượng đỉnh có bậc lẻ
+        if (oddDegreeVertices.Count == 0 || oddDegreeVertices.Count == 2)
+        {
+            // Có thể vẽ trong 1 nét vẽ hoặc 2 nét vẽ
+            Console.WriteLine("Đỉnh có bậc lẻ: " + string.Join(",", oddDegreeVertices)); // Debug thông tin đỉnh có bậc lẻ
+            if (oddDegreeVertices.Count == 0)
+            {
+                Hierholzer(1);  // Nếu không có đỉnh lẻ, bắt đầu từ bất kỳ đỉnh nào
+            }
+            else
+            {
+                Hierholzer(oddDegreeVertices[0]); // Nếu có 2 đỉnh lẻ, chọn 1 trong các đỉnh lẻ làm điểm bắt đầu
+            }
+            return 1;
+        }
+        return 0; // Không thể vẽ trong một nét vẽ
+    }
+
+    // Hàm đếm các đỉnh có bậc lẻ
+    private static List<int> CountOddDegreeVertices()
+    {
+        List<int> oddDegreeVertices = new List<int>();
+
+        for (int i = 1; i <= numVertices; i++)
+        {
+            int degree = 0;
+            for (int j = 1; j <= numVertices; j++)
+            {
+                degree += adjacencyMatrix[i, j];
+            }
+
+            if (degree % 2 != 0)
+                oddDegreeVertices.Add(i); // Lưu các đỉnh có bậc lẻ
+        }
+
+        return oddDegreeVertices;
+    }
+
+    // Hàm thực hiện thuật toán Hierholzer để vẽ các cạnh
+    private static void Hierholzer(int start)
+    {
+        Stack<int> stack = new Stack<int>();
+        List<int> stroke = new List<int>();
+        int[,] tempGraph = (int[,])adjacencyMatrix.Clone(); // Clone ma trận kề để tránh thay đổi ban đầu
+        stack.Push(start);
+
+        while (stack.Count > 0)
+        {
+            int u = stack.Peek();
+            bool hasEdge = false;
+
+            for (int v = 1; v <= numVertices; v++)
+            {
+                if (tempGraph[u, v] > 0)
+                {
+                    stack.Push(v);
+                    tempGraph[u, v]--;
+                    tempGraph[v, u]--;
+                    hasEdge = true;
+                    break; // Tiến tới đỉnh tiếp theo
+                }
+            }
+
+            if (!hasEdge)
+            {
+                stroke.Add(stack.Pop());
+            }
+        }
+
+        stroke.Reverse(); // Đảo ngược danh sách để lấy đúng thứ tự
+        drawingStrokes.Add(stroke); // Lưu nét vẽ vào danh sách drawingStrokes
+    }
+
+    // Hàm ghi kết quả ra file
+    private static void WriteResult(string outputFile, int minStrokes)
+    {
+        using (StreamWriter sw = new StreamWriter(outputFile))
+        {
+            sw.WriteLine(minStrokes);
+            if (minStrokes > 0)
+            {
+                foreach (var stroke in drawingStrokes)
+                {
+                    sw.WriteLine(string.Join("->", stroke));
+                }
+            }
+            else
+            {
+                sw.WriteLine("No");
+            }
+        }
+    }
+
+
 }
+
 
 
